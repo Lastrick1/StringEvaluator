@@ -1,0 +1,117 @@
+def cleanToArray(aStr):
+#   Convert line of numbers and operators into an array    
+    outArray = []
+    index = 0
+    numberBin = ""
+    # Step through each character
+    for character in aStr:
+        if character in "+-/*()":
+            # Check if holding numbers
+            if numberBin != "":
+                outArray.append(float(numberBin))
+                numberBin = ""
+            outArray.append(character)
+        else:
+            if character != " ":
+                numberBin += character
+    # Clear cache
+    if numberBin != "":
+        outArray.append(float(numberBin))
+    
+    return outArray  
+
+def containsOper(thisArr):
+    if "*" in thisArr: return True
+    if "/" in thisArr: return True
+    if "+" in thisArr: return True
+    if "-" in thisArr: return True
+    return False
+
+def evalArray(inArr):
+# Take a clean array and evaluate to a value
+    while containsOper(inArr):
+#       Check first for multiplication
+        if "*" in inArr:
+            index = inArr.index("*")
+            # Get surronding values and find result
+            valA = inArr.pop(index+1)
+            valB = inArr.pop(index-1)
+            result = valA * valB
+            inArr[index-1] = result     
+        else:
+#           Check for division
+            if "/" in inArr:
+                index = inArr.index("/")
+                # Get surronding values and find result
+                valA = inArr.pop(index+1)
+                valB = inArr.pop(index-1)
+                if valA == 0: return "DBZ"
+                result = valB / valA
+                inArr[index-1] = result     
+            else:
+#               Check for subtraction
+                if "-" in inArr:
+                    index = inArr.index("-")
+                    # Get surronding values and find result
+                    valA = inArr.pop(index+1)
+                    valB = inArr.pop(index-1)
+                    result = valB - valA
+                    inArr[index-1] = result     
+                else:
+                    index = inArr.index("+")
+                    # Get surronding values and find result
+                    valA = inArr.pop(index+1)
+                    valB = inArr.pop(index-1)
+                    result = valB + valA
+                    inArr[index-1] = result     
+        #print(inArr)
+
+    return float(inArr[0])
+
+def evalInner(aArr):
+    # Find inner parenthesis, evaluate and replace
+    index = 0
+    leftIndex = 0
+    rightIndex = 0
+    found = False
+    while (index < len(aArr) and not found):
+        if aArr[index] == "(": leftIndex = index
+        if aArr[index] != ")": index += 1
+        else:
+            # Evaluate inside of parenthesis
+            rightIndex = index
+            found = True
+            inside = evalArray(aArr[leftIndex+1:rightIndex])
+            if (inside == "DBZ"): return "DBZ"
+            else:
+                aArr[leftIndex] = inside
+                # pop unnecessary list items
+                for i in range(0,rightIndex-leftIndex):
+                    aArr.pop(leftIndex+1)
+
+    return aArr
+
+def evaluateStr(aStr):
+    # Converts string to array of operators and values
+    myArray = cleanToArray(aStr)
+    # While parenthesis found in array
+    while "(" in myArray:
+        # Search for inner parenthesis and evaluate
+        result = evalInner(myArray)
+        if result == "DBZ": return "Error: division by zero."
+        else:
+            myArray = result
+    # Get error or result (as string)
+    finalResult = evalArray(myArray)
+
+    # Attempt to convert to integer
+    try:
+        tmp = int(finalResult)
+        return str(tmp)
+    except:
+        return str(finalResult)
+
+# ****************************** Example CODE ****************************
+# import streval as s
+# myString = input("Enter string to evaluate: ")
+# print(myString + " => " + evaluateStr(myString))
